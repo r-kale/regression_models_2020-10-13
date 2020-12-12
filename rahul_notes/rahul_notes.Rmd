@@ -1,0 +1,183 @@
+---
+title: "Regression Models with R Applications - Rahul's Notes"
+author: "Rahul"
+date: "14/10/2020"
+output:
+  xaringan::moon_reader:
+    css: [default, metropolis, metropolis-fonts, intro.css]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Notes from Session
+* Email of Dr. Olga
+  * Olga.Korosteleva@csulb.edu
+* Book has ~22 basic regressions and 60 variations
+* Greek letters used 
+  * alpha
+  * beta
+  * epsilon
+  * lambda
+  * pi
+  * sigma
+---
+# General Linear Regression
+* x is fixed as it is observed
+* y hence carries the distribution of error and mean determined by the regression coefficients and x
+* hat notation is used for estimates
+  * beta hat estimated with MLE (max likelihood estimator)
+  * for complete information also estimate the variance
+---
+# Interpretation of fitted coefficients
+* How much does a variable influence the response
+* x1 is continuous
+  * beta 1 is the change in estimated mean of y for a unit change for x1 with all other vraiables remaining same
+* x1 is binary variable
+  * beta 1 is the change in estimated mean of y as x1 shifts from 0 to 1 while all other variables remain same. 
+  * (0 -1) can be viewed as comparison for Male and Female and estimated y is change as x1 changes from Male to Female
+---
+# Predicted Response
+* Estimate output variable
+
+---
+* Example Job Satisfaction
+* If there is more than three levels in a variable, then dummy variable is created
+* So beta hat for that variable is a comparison for change from one to another
+  * Male to Female
+  * Bachelor to Master
+  * Base to other category - done using relevel
+
+* Prediction
+  * for bachelor, both education terms disaapear
+  * if female, the gender term disappears
+---
+```{r}
+df<- read.csv(file=here::here("exercises","NormalExerciseData.csv"), header=TRUE, sep=",", stringsAsFactors = TRUE)
+
+df <- df %>% mutate(nmeds = as_factor(nmeds))
+#age","gender","ethnicity","BMI","nmeds","AQI","HR
+#plotting histogram with fitted normal density
+library(rcompanion)
+plotNormalHistogram(df$HR)
+
+#fitting general linear model
+summary(fitted.model<- glm(HR ~ gender + age + ethnicity + BMI + AQI + nmeds, 
+data=df, family=gaussian(link=identity)))
+
+#estimating sigma
+print(sigma.hat<- sigma(fitted.model))
+
+#using fitted model for prediction
+print(predict(fitted.model, data.frame(gender="M", age=50, ethnicity="Hispanic",BMI = 20,AQI = "moderate",nmeds = "0")))
+
+
+
+```
+
+# Solve example
+
+---
+# Gamma
+
+* right skewed. long right tail
+* need all positive variable
+  * can add constant to make all positive
+* Estimated mean is alpha times beta
+* link function - how does the 
+* log link function
+* need to estimate beta and alpha coefficients
+
+* Interpretation
+  * Percent change for unit change in e raised to response minus 1
+  * For 0-1 variable no need to subtract 1
+  
+* Examples of Gamma
+  * anything to do with money
+  * house prices
+
+
+---
+```{r}
+
+df<- read.csv(file=here::here("exercises","GammaExerciseData.csv"), header=TRUE, sep=",", stringsAsFactors = TRUE)
+
+#rescaling variables
+
+
+
+#plotting histogram with fitted normal density
+library(rcompanion)
+plotNormalHistogram(df$score)
+
+colnames(df) %>% glue::glue_collapse(sep='","')
+
+# "desgn","wrkyrs","priorQI","score"
+#fitting gamma regression 
+summary(fitted.model<- glm(score ~ desgn + wrkyrs 
++ priorQI , data=df,
+family=Gamma(link=log)))
+
+
+#using fitted model for prediction
+print(predict(fitted.model, type="response", data.frame(desgn="nurse",
+wrkyrs=7,priorQI="yes")))
+```
+
+---
+# Binary Logistics Regression
+
+* pi is estimated probability of y=1
+* Logit link function
+* Logit is natural log of odds
+
+* Interpretation
+  * x continuous
+    * % change in odds for unit change
+  * x 0-1 variable
+    * percent ration of odds
+---
+```{r}
+
+```
+
+---
+# Poisson Regression
+
+* Log link function
+* output 0,1,2,3,...
+* theoretical upto infinite
+* lambda is mean expected output
+* Interpretation
+  * x continuous
+    * exponential of (percent change minus 1)
+  * x 0-1
+    * exponential of (percent change)
+    
+---
+
+```{r}
+hospitalstay.data<- read.csv(file="examples/PoissonExampleData.csv", header=TRUE, sep=",", stringsAsFactors = TRUE)
+
+#fitting Poisson model
+summary(fitted.model<- glm(days ~ gender + age + illness, 
+data=hospitalstay.data, family=poisson(link=log)))
+
+#using fitted model for prediction
+print(predict(fitted.model, data.frame(gender="M", age=55, illness="no"), 
+type="response"))
+```
+
+
+
+
+
+  
